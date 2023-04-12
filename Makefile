@@ -1,21 +1,14 @@
-CC = gcc
-CFLAGS = -Wall -Wextra
+all: server client
+server: bin/monitor
+client: bin/tracer
 
-SRCDIR = src
-BINDIR = bin
 
-TARGETS = $(BINDIR)/monitor $(BINDIR)/tracer
 
-.PHONY: all clean
+bin/monitor: src/monitor.c include/monitor.h
+gcc -Wall -g -c src/monitor.c  
 
-all: $(TARGETS)
-
-$(BINDIR)/monitor: $(SRCDIR)/monitor.c
-    $(CC) $(CFLAGS) $^ -o $@
-
-$(BINDIR)/tracer: $(SRCDIR)/tracer.c
-    $(CC) $(CFLAGS) $^ -o $@
+bin/tracer: src/tracer.c include/tracer.h
+gcc -Wall -g -c src/tracer.c 
 
 clean:
-    rm -f $(TARGETS)
 rm -f obj/* tmp/* bin/{tracer,monitor}
