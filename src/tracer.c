@@ -21,79 +21,85 @@ int main(int argc, char** argv){
     if(dst<0){
         perror("Error on Open dst");
     }
-    char token[20];
+
+    int fifo = mkfifo("myfifo", 0600);
+        if(fifo == -1){
+            perror("Erro na criação do FIFO.");
+        // exit(1);
+        }
+        int fd = open("myfifo", O_WRONLY);
+        printf("Abri o FIFO para escrita\n");
+        int p[2];
+        pipe(p);
+
+    int i=0,a ;
+    char **token = malloc((argc-2)*sizeof(char));
     if (strcmp(argv[1], "execute") == 0) {
         if (strcmp(argv[2], "-u") == 0) {
-            for (int a = 3, i = 0; argv[a] != NULL; a++, i++) {
-                strcpy(&token[i], argv[a]);
+            for (a = 3; a <argc; a++) {
+                //printf("%s\n",argv[a]);
+                token[i] = strdup((argv[a]));
+                i++;
+                //printf("%s\n",&token[i]);
             }
+        token[i]=NULL;
         }
- 
+        
+
+    //for (i = 0; token[i] != NULL; i++) {
+    //    printf("%s\n", token[i]);
+    //}
+       
+    
+        
+        int res = fork();
+
+        if(res==0){
+
+            execvp(argv[3],token);
+        
+            _exit(1);
+        }else{ 
+            struct timeval current_time;
+            gettimeofday(&current_time, NULL); // funcao time 
+
+            //enviar PID , nome do programa, timestamp
+
+            char msg[100];
+            //1 ->
+            sprintf(msg, "%d %d %s %ld",1, getpid(), argv[3], current_time.tv_sec);
+            
+            int status;
+            //char* tempo= malloc(20*sizeof(char));
+
+            printf("A executar: Pid: %d, Programa: %s, Tempo Inicial: %ld\n", getpid(),  argv[3],current_time.tv_sec);
+
+            write(fd,msg,strlen(msg)+1);
+
+            waitpid(res,&status,0);
+
+            struct timeval end_time;
+            gettimeofday(&end_time, NULL);
+
+            //enviar msg do pid terminado e timesatamp final
+            sprintf(msg, " %d %d %ld",2, getpid(), current_time.tv_sec);
+
+            write(fd,msg,strlen(msg)+1);
+
+            long int elapsed_time = (end_time.tv_sec - start_time.tv_sec) * 1000 + (end_time.tv_usec - start_time.tv_usec) / 1000;
+            printf("O programa %s, pid %d, terminou em %ld ms\n", argv[3],getpid(),elapsed_time);
+            
+        }
+    }else if (strcmp(argv[1], "status") == 0) {
+
+        char statusMsg[20];
+
+        sprintf(statusMsg, "%s", argv[1]);
+
+        write(fd,statusMsg,strlen(statusMsg+1));
+        
     }
     
-    int fifo = mkfifo("myfifo", 0600);
-    if(fifo == -1){
-        perror("Erro na criação do FIFO.");
-       // exit(1);
-    }
-    int fd = open("myfifo", O_WRONLY);
-    printf("Abri o FIFO para escrita\n");
-    int p[2];
-    pipe(p);
-    int res = fork();
-
-    if(res==0){
-        char * newtoken = strtok(token, " ");
-   
-   /* walk through other tokens */
-        while( newtoken != NULL ) {
-            printf( "%s\n", newtoken);
-            newtoken = strtok(NULL, " ");
-        }
-        
-        execvp(&newtoken[0],&newtoken);  // filho 
-        //execlp(program, program, token, NULL);
-        
-            
-        
-
-            
-       // }
-        _exit(1);
-    }else{ 
-        struct timeval current_time;
-        gettimeofday(&current_time, NULL); // funcao time 
-
-        //enviar PID , nome do programa, timestamp
-
-        char msg[100];
-        sprintf(msg, "%d %s %ld", getpid(), argv[3], current_time.tv_sec);
-        
-        int status;
-        //char* tempo= malloc(20*sizeof(char));
-
-        printf("A executar: Pid: %d, Programa: %s, Tempo Inicial: %ld\n", getpid(),  argv[3],current_time.tv_sec);
-
-        write(fd,msg,strlen(msg)+1);
-
-        waitpid(res,&status,0);
-
-        struct timeval end_time;
-        gettimeofday(&end_time, NULL);
-
-        sprintf(msg, "%d %ld", getpid(), current_time.tv_sec);
-
-        write(fd,msg,strlen(msg)+1);
-
-        long int elapsed_time = (end_time.tv_sec - start_time.tv_sec) * 1000 + (end_time.tv_usec - start_time.tv_usec) / 1000;
-        printf("O programa %s, pid %d, terminou em %ld ms\n", argv[3],getpid(),elapsed_time);
-        
-    }
-   
-
-
-
-
     
 
     /*
