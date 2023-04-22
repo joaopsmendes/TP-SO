@@ -5,7 +5,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #define MAX_PROGRAMS 30;
-// para gaurdar a informacao
 
 typedef struct {
     pid_t pid;                  // ID do processo
@@ -15,9 +14,11 @@ typedef struct {
 }Program;
 
 Program programs[30];
+// para gaurdar a informacao
+
 int num_programs = 0;
 
-void add_program1(pid_t pid, char *program_name, time_t start_time) {
+void add_program(pid_t pid, char *program_name, time_t start_time) {
     if (num_programs >= 30) {
         fprintf(stderr, "Maximum number of programs reached\n");
         return;
@@ -34,10 +35,20 @@ void add_program1(pid_t pid, char *program_name, time_t start_time) {
     num_programs++;
 }
 
+void add_endtime_to_program(pid_t pid, time_t end_time) {
+    if (num_programs >= 30) {
+        fprintf(stderr, "Maximum number of programs reached\n");
+        return;
+    }
 
+    for(int i=0; i<30; i++){
+        if(programs[i].pid == pid){
 
+            programs[i].end_time = end_time;
 
-
+        }
+    }
+}
 
 // function to print information about all programs
 void print_programs() {
@@ -61,73 +72,74 @@ void remove_program(pid_t pid) {
             break;
         }
     }
+}
 
 int main(int argc, char** argv){
     //int fd = open("myfifo", O_RDONLY);
     //printf("Abri o fifo para leitura\n");
+    int fd_rd_ClientToServer = open("myfifo", O_RDONLY,0600);
+    if(fd_rd_ClientToServer <0) perror("fd1");
 
-    int fd_rd_ClientToServer = open("myfifo", O_RDONLY);
-    if(fd_rd_clientToServer<0) perror("fd1");
-
-    int fd_wr_ClientToServer = open("myfifo", O_WRONLY);
-    if(fd_wr_ClientToServer<0) perror("fd2");
+    int fd_wr_ServerToClient = open("myfifo", O_CREAT|O_WRONLY,0600);
+    if(fd_wr_ServerToClient<0) perror("fd2");
 
     //int fd_log = dopen("log.txt", O_CREAT | O_TRUNC | O_WRONLY, 0600);
 
-    //satruct programas
-
+    //struct programas
     
 
     int res;
     char* buffer = malloc(200*sizeof(char));
-    while((res=read(fd,buffer,200))>0){
-
+    while((res=read(fd_rd_ClientToServer,buffer,200))>0){
+        printf("buffer :%s",buffer);
         char * temp1 = strdup(buffer);
 
-        temp1 = strtok(temp1, "\n"); 
+        //temp1 = strtok(temp1, "\0"); 
         char * typeofservice = strtok(strdup(temp1), " ");
+
+        char * argPidProgram = strtok(NULL, " ");
+        char * argSecond = strtok(NULL, " ");//nome programa ou end_time
+        char * argThird = strtok(NULL, " ");
         
         if(strcmp(typeofservice,"status")==0){
 
-            char statusMsg[20];
+            Program statusMsg[30];
 
-            sprintf(statusMsg, "%s", );
+            for(int i = 0; i<30; i++){
+                if(programs[i].end_time == 0){
+                    strcpy(statusMsg[i].program_name,programs[i].program_name);
+                    statusMsg[i].pid=programs[i].pid;
+                    statusMsg[i].start_time= programs[i].start_time;
+                }
+            }
 
-            write(fd,statusMsg,strlen(statusMsg+1));
+            //sprintf(statusMsg, "%s", );
 
+            write(fd_wr_ServerToClient,statusMsg,strlen(statusMsg+1));
+
+            printf("Mensagem enviada ao cliente! %s\n ",statusMsg);
             
         }
 
-        //
+        else if(strcmp(typeofservice,"1")==0){
 
-        if(strcmp(typeofservice,"1")==0){
-            //add p pid, tI, nome
-            
+            //adicionar programa à lista apenas com tempo inicial (ainda em execução).
+            add_program(argPidProgram,argSecond,argThird);
+            printf("Programa adicionado à lista | Pid: %s | Nome: %s | tInicial: %s\n",argPidProgram,argSecond,argThird);
 
         } 
 
-        //783464 ls 12:00
-
-
-
-        if(strcmp(typeofservice,"2")==0){
+        else if(strcmp(typeofservice,"2")==0){
             //acrescentar end time ao programa
-
+            add_endtime_to_program(argPidProgram,argSecond); //pid e end_time.
+            printf("Programa com pid: %s Terminado!",argPidProgram);
         } 
 
-        
-
-
-
-
-
-        
-
-        write(1, buffer, res);
-        printf("Li %s\n", buffer);
+       // write(1, buffer, res);
+       // printf("Li %s\n", buffer);
     }
-    printf("Terminei de ler\n");
-    free(buffer);
+   // printf("Terminei de ler\n");
+   // free(buffer);
     //close(fd_log);
     return 0;
 
@@ -140,4 +152,7 @@ int main(int argc, char** argv){
    // 
    // return 0;
 }
-}
+
+
+
+

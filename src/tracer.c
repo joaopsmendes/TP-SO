@@ -1,18 +1,26 @@
-#include <sys/types.h>
-#include <unistd.h> /* chamadas ao sistema: defs e decls essenciais */
-#include <fcntl.h> /* O_RDONLY, O_WRONLY, O_CREAT, O_* */
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#define MAX_PROGRAMS 30;
 
+typedef struct {
+    pid_t pid;                  // ID do processo
+    char program_name[50];      // Nome do programa
+    time_t start_time;          // Timestamp de início do programa
+    time_t end_time;            // Timestamp de fim do programa
+}Program;
 
 
 int main(int argc, char** argv){
-
     struct timeval start_time;
     gettimeofday(&start_time, NULL);
 
+
+
+/*
     int src = open("input", O_RDONLY);
     if(src<0){
         perror("Error on Open src");
@@ -20,14 +28,14 @@ int main(int argc, char** argv){
     int dst = open("output",  O_CREAT | O_TRUNC | O_WRONLY , 0640); 
     if(dst<0){
         perror("Error on Open dst");
-    }
+    }*/
 
     int fifo = mkfifo("myfifo", 0600);
         if(fifo == -1){
             perror("Erro na criação do FIFO.");
         // exit(1);
         }
-        int fd = open("myfifo", O_WRONLY);
+        int fd = open("myfifo", O_WRONLY,0600);
         printf("Abri o FIFO para escrita\n");
         int p[2];
         pipe(p);
@@ -82,7 +90,7 @@ int main(int argc, char** argv){
             gettimeofday(&end_time, NULL);
 
             //enviar msg do pid terminado e timesatamp final
-            sprintf(msg, " %d %d %ld",2, getpid(), current_time.tv_sec);
+            sprintf(msg, "%d %d %ld",2, getpid(), current_time.tv_sec);
 
             write(fd,msg,strlen(msg)+1);
 
@@ -93,12 +101,30 @@ int main(int argc, char** argv){
     }else if (strcmp(argv[1], "status") == 0) {
 
         char statusMsg[20];
-
         sprintf(statusMsg, "%s", argv[1]);
-
         write(fd,statusMsg,strlen(statusMsg+1));
+
+        int fd_rd_ServertoClient = open("myfifo",O_RDONLY,0600);
+        if(fd_rd_ServertoClient <0) perror("fd1");
+
+        Program * buffer =malloc(30*sizeof(Program));
+        int res;
+
+        res = read(fd_rd_ServertoClient,buffer,30);
         
-    }
+            for(int i = 0; i<30; i++){
+                    printf("%s",buffer[i].program_name);
+                    printf("%s",buffer[i].pid);
+                    printf("%s\n",buffer[i].start_time);
+                }
+            }
+
+
+        
+        
+
+         return 0;
+         }
     
     
 
@@ -123,9 +149,8 @@ int main(int argc, char** argv){
 
     // A opção execute -u; ==> arv[0]: execute; argv[1]: -u
     
-    close(src);
-    close(dst);
-    return 0;
+    //close(src);
+    //close(dst);
+   
 
-}
 
