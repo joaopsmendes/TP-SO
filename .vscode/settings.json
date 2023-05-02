@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "string.h": "c",
-        "monitor.h": "c"
+        "monitor.h": "c",
+        "fcntl.h": "c"
     }
 }

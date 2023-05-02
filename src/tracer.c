@@ -30,12 +30,12 @@ int main(int argc, char** argv){
         perror("Error on Open dst");
     }*/
 
-    int fifo = mkfifo("myfifo", 0600);
+    int fifo = mkfifo("tracer_to_monitor", 0600);
         if(fifo == -1){
             perror("Erro na criação do FIFO.");
         // exit(1);
         }
-        int fd = open("myfifo", O_WRONLY,0600);
+        int fd = open("tracer_to_monitor", O_WRONLY,0600);
         printf("Abri o FIFO para escrita\n");
         int p[2];
         pipe(p);
@@ -52,6 +52,13 @@ int main(int argc, char** argv){
             }
         token[i]=NULL;
         }
+        /*else if (strcmp(argv[2], "-p") == 0) {
+            //cat fich1 | grep "palavra" | wc -l
+            //SIZE == numero de commandos, no caso em cima seria 3
+            int p[SIZE-1][2];
+
+        }
+        */
         
 
     //for (i = 0; token[i] != NULL; i++) {
@@ -80,7 +87,7 @@ int main(int argc, char** argv){
             int status;
             //char* tempo= malloc(20*sizeof(char));
 
-            printf("A executar: Pid: %d, Programa: %s, Tempo Inicial: %ld\n", getpid(),  argv[3],current_time.tv_sec);
+            printf("Running PID: %d\n", getpid());
 
             write(fd,msg,strlen(msg)+1);
 
@@ -95,31 +102,49 @@ int main(int argc, char** argv){
             write(fd,msg,strlen(msg)+1);
 
             long int elapsed_time = (end_time.tv_sec - start_time.tv_sec) * 1000 + (end_time.tv_usec - start_time.tv_usec) / 1000;
-            printf("O programa %s, pid %d, terminou em %ld ms\n", argv[3],getpid(),elapsed_time);
+            printf("Ended in %ld ms\n", argv[3],getpid(),elapsed_time);
             
         }
+
     }else if (strcmp(argv[1], "status") == 0) {
 
         char statusMsg[20];
         sprintf(statusMsg, "%s", argv[1]);
+        printf("envio para o servidor ");
         write(fd,statusMsg,strlen(statusMsg+1));
 
-        int fd_rd_ServertoClient = open("myfifo",O_RDONLY,0600);
+        int fd_rd_ServertoClient = open("monitor_to_tracer",O_RDONLY,0600);
         if(fd_rd_ServertoClient <0) perror("fd1");
 
         Program * buffer =malloc(30*sizeof(Program));
         int res;
 
         res = read(fd_rd_ServertoClient,buffer,30);
-        
-            for(int i = 0; i<30; i++){
+        printf ( "RECEBO");
+            for(int i = 0; buffer!=NULL ; i++){
                     printf("%s",buffer[i].program_name);
                     printf("%s",buffer[i].pid);
                     printf("%s\n",buffer[i].start_time);
                 }
             }
+        /*if (res < 0) {
+        perror("Error reading from FIFO");
+        exit(1);
+        }*/
 
+        /*
+        else if(strcmp(argv[1], "stats-time") == 0){
 
+        }
+        else if(strcmp(argv[1], "stats-command") == 0){
+            
+        }
+        else if(strcmp(argv[1], "stats-uniq") == 0){
+            
+        }
+        
+        
+        */
         
         
 
