@@ -4,17 +4,19 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 #define MAX_PROGRAMS 30;
 
-typedef struct {
+/*typedef struct {
     pid_t pid;                  // ID do processo
     char program_name[50];      // Nome do programa
     time_t start_time;          // Timestamp de início do programa
     time_t end_time;            // Timestamp de fim do programa
-}Program;
+}Program;*/
 
 
 int main(int argc, char** argv){
+
     struct timeval start_time;
     gettimeofday(&start_time, NULL);
 
@@ -52,13 +54,16 @@ int main(int argc, char** argv){
             }
         token[i]=NULL;
         }
-        /*else if (strcmp(argv[2], "-p") == 0) {
-            //cat fich1 | grep "palavra" | wc -l
-            //SIZE == numero de commandos, no caso em cima seria 3
-            int p[SIZE-1][2];
+        // else if (strcmp(argv[2], "-p") == 0) {
+        //     //cat fich1 | grep "palavra" | wc -l
+        //     //SIZE == numero de commandos, no caso em cima seria 3
+        //     int p[SIZE-1][2];
+        //     //tem de ter no terminal as aspas entre os diferentes argumentos
+        //     //seguir o exercicio 6
+                       
 
-        }
-        */
+        // }
+        
         
 
     //for (i = 0; token[i] != NULL; i++) {
@@ -101,7 +106,7 @@ int main(int argc, char** argv){
 
             write(fd,msg,strlen(msg)+1);
 
-            long int elapsed_time = (end_time.tv_sec - start_time.tv_sec) * 1000 + (end_time.tv_usec - start_time.tv_usec) / 1000;
+            long int elapsed_time = (end_time.tv_sec - current_time.tv_sec) * 1000 + (end_time.tv_usec - current_time.tv_usec) / 1000;//tava start_time?
             printf("Ended in %ld ms\n", argv[3],getpid(),elapsed_time);
             
         }
@@ -110,23 +115,30 @@ int main(int argc, char** argv){
 
         char statusMsg[20];
         sprintf(statusMsg, "%s", argv[1]);
-        printf("envio para o servidor ");
+        printf("Status enviado ao servidor!\n");
         write(fd,statusMsg,strlen(statusMsg+1));
 
         int fd_rd_ServertoClient = open("monitor_to_tracer",O_RDONLY,0600);
         if(fd_rd_ServertoClient <0) perror("fd1");
 
-        Program * buffer =malloc(30*sizeof(Program));
+        //Program * buffer =malloc(30*sizeof(Program));
         int res;
 
-        res = read(fd_rd_ServertoClient,buffer,30);
-        printf ( "RECEBO");
-            for(int i = 0; buffer!=NULL ; i++){
+        char* buffer = malloc(30*sizeof(char));
+
+        while((res=read(fd_rd_ServertoClient,buffer,30))>0){
+
+            printf ( "RECEBI!");
+
+            write(1,buffer,strlen(buffer)+1);
+
+        }
+
+         /*for(int i = 0; buffer!=NULL ; i++){
                     printf("%s",buffer[i].program_name);
                     printf("%s",buffer[i].pid);
                     printf("%s\n",buffer[i].start_time);
-                }
-            }
+                }*/
         /*if (res < 0) {
         perror("Error reading from FIFO");
         exit(1);
@@ -148,8 +160,10 @@ int main(int argc, char** argv){
         
         
 
-         return 0;
-         }
+        
+        }
+        return 0;
+}
     
     
 

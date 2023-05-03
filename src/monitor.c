@@ -74,6 +74,19 @@ void remove_program(pid_t pid) {
     }
 }
 
+int number_of_programs_in_list(){//ver quantos programas estão na lista
+
+    int n=0;
+
+    for(int i =0; i<30; i++){
+
+        if(programs[i].pid>0) n++;
+    }
+
+    return n;
+
+}
+
 int main(int argc, char** argv){
     //int fd = open("myfifo", O_RDONLY);
     //printf("Abri o fifo para leitura\n");
@@ -107,25 +120,46 @@ int main(int argc, char** argv){
         char * argPidProgram = strtok(NULL, " ");
         char * argSecond = strtok(NULL, " ");//nome programa ou end_time
         char * argThird = strtok(NULL, " ");
-        printf ( "AQUI!!!!%s\n",typeofservice);
+        printf ( "typeofservice: %s!\n",typeofservice);
+
         if(strcmp(typeofservice,"status")==0){
 
+            struct timeval current_time;
+            gettimeofday(&current_time, NULL);
+
             Program statusMsg[30];
-            printf( " imprimir status ");
-            for(int i = 0; i<30; i++){
+            printf( " imprimir status \n");
+
+            for(int i=0; i<number_of_programs_in_list();i++){
+
+                long int elapsed_time = (current_time.tv_sec - programs[i].start_time) * 1000 + (current_time.tv_usec - programs[i].start_time) / 1000;//é preciso tv.sec no start_time?
+                //printf("Ended in %ld ms\n", argv[3],getpid(),elapsed_time);
+                
+
+                char msg[100];
+                sprintf(msg, "Program %d, Pid: %d, Em execução:  %ld ms",argv[3], getpid(),elapsed_time);
+
+                write(fd_wr_ServerToClient,msg,strlen(msg)+1);//enviar linha por linha para o cliente!
+
+            }
+
+            
+
+           /* for(int i = 0; i<30; i++){
+                
                 if(programs[i].end_time == 0){
                     strcpy(statusMsg[i].program_name,programs[i].program_name);
                     statusMsg[i].pid=programs[i].pid;
                     statusMsg[i].start_time= programs[i].start_time;
                 }
-            }
+            }*/
 
             //sprintf(statusMsg, "%s", );
 
-        printf( " a enviar "); 
-        write(fd_wr_ServerToClient,statusMsg,strlen(statusMsg+1));
+        //printf( " a enviar "); 
+        //write(fd_wr_ServerToClient,statusMsg,strlen(statusMsg+1));
 
-        printf("Mensagem enviada ao cliente! %s\n ",statusMsg);
+        //printf("Mensagem enviada ao cliente! %s\n ",statusMsg);
         
         }
 
@@ -136,11 +170,11 @@ int main(int argc, char** argv){
             printf("Programa adicionado à lista | Pid: %s | Nome: %s | tInicial: %s\n",argPidProgram,argSecond,argThird);
         } 
 
-       // else if(strcmp(typeofservice,"2")==0){
+        else if(strcmp(typeofservice,"2")==0){
             //acrescentar end time ao programa
-        //    add_endtime_to_program(argPidProgram,argSecond); //pid e end_time.
-        //    printf("Programa com pid: %s Terminado!\n",argPidProgram);
-       //} 
+            add_endtime_to_program(argPidProgram,argSecond); //pid e end_time.
+            printf("Programa com pid: %s Terminado!\n",argPidProgram);
+        } 
         
        // write(1, buffer, res);
        // printf("Li %s\n", buffer);
