@@ -57,6 +57,15 @@ int main(int argc, char** argv){
         // else if (strcmp(argv[2], "-p") == 0) {
         //     //cat fich1 | grep "palavra" | wc -l
         //     //SIZE == numero de commandos, no caso em cima seria 3
+        // char ** exec_args = malloc((argc-2)*sizeof(char));
+        // char* string;
+        // char* command = strdup(arg);
+
+        // while((string = strsep(&command, " | ")) != NULL){
+        //     exec_args[i] = string;
+        //     i++;
+        // }
+        // exec_args[i] = NULL;
         //     int p[SIZE-1][2];
         //     //tem de ter no terminal as aspas entre os diferentes argumentos
         //     //seguir o exercicio 6

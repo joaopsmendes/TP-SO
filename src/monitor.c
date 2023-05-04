@@ -4,7 +4,8 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#define MAX_PROGRAMS 30;
+#include <string.h>
+#define MAX_PROGRAMS 30
 
 typedef struct {
     pid_t pid;                  // ID do processo
@@ -89,7 +90,7 @@ int number_of_programs_in_list(){//ver quantos programas estão na lista
 
 int main(int argc, char** argv){
     //int fd = open("myfifo", O_RDONLY);
-    //printf("Abri o fifo para leitura\n");
+    printf("Abri o fifo para leitura\n");
 
     int fifo = mkfifo("monitor_to_tracer", 0600);
         if(fifo == -1){
@@ -97,10 +98,10 @@ int main(int argc, char** argv){
         // exit(1);
     }
 
-    int fd_rd_ClientToServer = open("tracer_to_monitor", O_RDONLY,0600);
+    int fd_rd_ClientToServer = open("tracer_to_monitor", O_RDONLY);
     if(fd_rd_ClientToServer <0) perror("fd1");
 
-    int fd_wr_ServerToClient = open("monitor_to_tracer", O_WRONLY,0600);
+    int fd_wr_ServerToClient = open("monitor_to_tracer", O_WRONLY);
     if(fd_wr_ServerToClient<0) perror("fd2");
 
     //int fd_log = dopen("log.txt", O_CREAT | O_TRUNC | O_WRONLY, 0600);
