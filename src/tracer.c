@@ -5,14 +5,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
-#define MAX_PROGRAMS 30;
+#define MAX_PROGRAMS 30
 
-/*typedef struct {
-    pid_t pid;                  // ID do processo
-    char program_name[50];      // Nome do programa
-    time_t start_time;          // Timestamp de início do programa
-    time_t end_time;            // Timestamp de fim do programa
-}Program;*/
 
 
 int main(int argc, char** argv){
@@ -22,15 +16,6 @@ int main(int argc, char** argv){
 
 
 
-/*
-    int src = open("input", O_RDONLY);
-    if(src<0){
-        perror("Error on Open src");
-    }
-    int dst = open("output",  O_CREAT | O_TRUNC | O_WRONLY , 0640); 
-    if(dst<0){
-        perror("Error on Open dst");
-    }*/
 
     int fifo = mkfifo("tracer_to_monitor", 0600);
         if(fifo == -1){
@@ -84,6 +69,7 @@ int main(int argc, char** argv){
         int res = fork();
 
         if(res==0){
+            //filho
 
             execvp(argv[3],token);
         
@@ -116,7 +102,7 @@ int main(int argc, char** argv){
             write(fd,msg,strlen(msg)+1);
 
             long int elapsed_time = (end_time.tv_sec - current_time.tv_sec) * 1000 + (end_time.tv_usec - current_time.tv_usec) / 1000;//tava start_time?
-            printf("Ended in %ld ms\n", argv[3],getpid(),elapsed_time);
+            printf("Ended in %ld ms\n",elapsed_time);
             
         }
 
@@ -125,7 +111,7 @@ int main(int argc, char** argv){
         char statusMsg[20];
         sprintf(statusMsg, "%s", argv[1]);
         printf("Status enviado ao servidor!\n");
-        write(fd,statusMsg,strlen(statusMsg+1));
+       write(fd,statusMsg,strlen(statusMsg)+1);
 
         int fd_rd_ServertoClient = open("monitor_to_tracer",O_RDONLY,0600);
         if(fd_rd_ServertoClient <0) perror("fd1");
@@ -143,7 +129,7 @@ int main(int argc, char** argv){
 
         }
 
-         /*for(int i = 0; buffer!=NULL ; i++){
+        /*for(int i = 0; buffer!=NULL ; i++){
                     printf("%s",buffer[i].program_name);
                     printf("%s",buffer[i].pid);
                     printf("%s\n",buffer[i].start_time);
