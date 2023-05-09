@@ -15,8 +15,6 @@ int main(int argc, char** argv){
     gettimeofday(&start_time, NULL);
 
 
-
-
     int fifo = mkfifo("tracer_to_monitor", 0600);
         if(fifo == -1){
             perror("Erro na criação do FIFO.");
@@ -122,8 +120,6 @@ int main(int argc, char** argv){
         char* buffer = malloc(30*sizeof(char));
 
         while((res=read(fd_rd_ServertoClient,buffer,30))>0){
-
-            printf ( "RECEBI!");
 
             write(1,buffer,strlen(buffer)+1);
 

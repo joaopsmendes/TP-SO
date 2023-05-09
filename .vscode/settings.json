@@ -2,6 +2,7 @@
     "files.associations": {
         "string.h": "c",
         "monitor.h": "c",
-        "fcntl.h": "c"
+        "fcntl.h": "c",
+        "types.h": "c"
     }
 }
