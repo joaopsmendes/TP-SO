@@ -79,8 +79,8 @@ int main(int argc, char** argv){
             //enviar PID , nome do programa, timestamp
 
             char msg[100];
-            //1 ->
-            sprintf(msg, "%d %d %s %ld",1, getpid(), argv[3], current_time.tv_sec);
+            //1 ->//print_programs();
+            sprintf(msg, "%d %d %s %ld",1, getpid(), argv[3], current_time);
             
             int status;
             //char* tempo= malloc(20*sizeof(char));
@@ -95,7 +95,7 @@ int main(int argc, char** argv){
             gettimeofday(&end_time, NULL);
 
             //enviar msg do pid terminado e timesatamp final
-            sprintf(msg, "%d %d %ld",2, getpid(), current_time.tv_sec);
+            sprintf(msg, "%d %d %ld",2, getpid(), current_time);
 
             write(fd,msg,strlen(msg)+1);
 
@@ -107,9 +107,9 @@ int main(int argc, char** argv){
     }else if (strcmp(argv[1], "status") == 0) {
 
         char statusMsg[20];
-        sprintf(statusMsg, "%s", argv[1]);
+        sprintf(statusMsg, "%d %s",3, argv[1]);
         printf("Status enviado ao servidor!\n");
-       write(fd,statusMsg,strlen(statusMsg)+1);
+        write(fd,statusMsg,strlen(statusMsg)+1);
 
         int fd_rd_ServertoClient = open("monitor_to_tracer",O_RDONLY,0600);
         if(fd_rd_ServertoClient <0) perror("fd1");
@@ -148,8 +148,6 @@ int main(int argc, char** argv){
         
         
         */
-        
-        
 
         
         }

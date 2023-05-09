@@ -40,7 +40,7 @@ void add_program(pid_t pid, char *program_name, time_t start_time) {
     programs[num_programs] = *program; // copy the contents of the newly allocated program to the array
     num_programs++;
 
-    free(program); // free the dynamically allocated memory
+    //free(program); // free the dynamically allocated memory
 }
 
 void add_endtime_to_program(pid_t pid, time_t end_time) {
@@ -59,14 +59,14 @@ void add_endtime_to_program(pid_t pid, time_t end_time) {
 }
 
 // function to print information about all programs
-void print_programs() {
-    for (int i = 0; i < num_programs; i++) {
+/*void print_programs() {
+    for (int i = 0; i < number_of_programs_in_list(); i++) {
         printf("Program %s with PID %d started at %s", programs[i].program_name, programs[i].pid, ctime(&programs[i].start_time));
         if (programs[i].end_time != 0) {
             printf("Program %s with PID %d ended at %s", programs[i].program_name, programs[i].pid, ctime(&programs[i].end_time));
         }
     }
-}
+}*/
 
 // function to remove a program from the array given its PID
 void remove_program(pid_t pid) {
@@ -82,18 +82,19 @@ void remove_program(pid_t pid) {
     }
 }
 
+/*
 int number_of_programs_in_list(){//ver quantos programas estão na lista
 
     int n=0;
 
-    for(int i =0; i<30; i++){
+    for(int i =0; programs[i]!=NULL ; i++){
 
-        if(programs[i].pid>0) n++;
-    }
+       n++;
+   }
 
     return n;
 
-}
+}*/
 
 int main(int argc, char** argv){
     //int fd = open("myfifo", O_RDONLY);
@@ -105,8 +106,6 @@ int main(int argc, char** argv){
         // exit(1);
     }
 
-
-    
     
     //int flag=0;
     while(1){
@@ -143,20 +142,32 @@ int main(int argc, char** argv){
             Program statusMsg[30];
             printf( " imprimir status \n");
 
-            for(int i=0; i<number_of_programs_in_list();i++){
+            printf("Program %s with PID %d started at %s", programs[0].program_name, programs[0].pid, ctime(&programs[0].start_time));
 
-                int fd_wr_ServerToClient = open("monitor_to_tracer", O_WRONLY);
-                if(fd_wr_ServerToClient<0) perror("fd2");
+            //print_programs();
+
+            for(int i=0; i<num_programs-1 ;i++){
+
+                printf("estou aqui!\n");
+                
 
                 long int elapsed_time = (current_time.tv_sec - programs[i].start_time) * 1000 + (current_time.tv_usec - programs[i].start_time) / 1000;//é preciso tv.sec no start_time?
                 //printf("Ended in %ld ms\n", argv[3],getpid(),elapsed_time);
+
+                printf("aquiii ! %ld\n",elapsed_time);
 
                 
 
                 if(programs[i].end_time == 0 ){
 
+                    int fd_wr_ServerToClient = open("monitor_to_tracer", O_WRONLY);
+                    if(fd_wr_ServerToClient<0) perror("fd2");
+
                     char msg[100];
-                    sprintf(msg, "Program %d, Pid: %d, Em execução:  %ld ms\n",programs[i].program_name, programs[i].pid, elapsed_time);
+                    sprintf(msg, "Program %d, Pid: %d, Em execução: %ld ms\n",programs[i].program_name, programs[i].pid, elapsed_time);
+
+                    //printf("%s\n", msg);
+                    //ctime(&programs[i].start_time)
 
                     write(fd_wr_ServerToClient,msg,strlen(msg)+1);//enviar linha por linha para o cliente!
 
@@ -180,6 +191,8 @@ int main(int argc, char** argv){
 
             add_program(argPidProgram,argSecond,argThird);
             printf("Programa adicionado à lista | Pid: %s | Nome: %s | tInicial: %s\n",argPidProgram,argSecond,argThird);
+
+            //print_programs();
         } 
 
         else if(strcmp(typeofservice,"2")==0){
@@ -200,6 +213,19 @@ int main(int argc, char** argv){
     
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
