@@ -4,5 +4,6 @@
         "monitor.h": "c",
         "fcntl.h": "c",
         "types.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 }

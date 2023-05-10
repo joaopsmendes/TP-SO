@@ -6,21 +6,22 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <string.h>
+#include <time.h>
 #define MAX_PROGRAMS 30
 
-typedef struct {
+typedef struct program{
     pid_t pid;                  // ID do processo
     char program_name[50];      // Nome do programa
-    time_t start_time;          // Timestamp de início do programa
-    time_t end_time;            // Timestamp de fim do programa
+    struct timespec start_time;          // Timestamp de início do programa
+    struct timespec end_time;            // Timestamp de fim do programa
 }Program;
 
-Program programs[30];
+Program programs[MAX_PROGRAMS];
 // para gaurdar a informacao
 
 int num_programs = 0;
 
-void add_program(pid_t pid, char *program_name, time_t start_time) {
+/*void add_program(pid_t pid, char *program_name, time_t start_time) {
     if (num_programs >= 30) {
         fprintf(stderr, "Maximum number of programs reached\n");
         return;
@@ -32,18 +33,34 @@ void add_program(pid_t pid, char *program_name, time_t start_time) {
         return;
     }
 
-    program->pid = pid;
-    strncpy(program->program_name, program_name, 50);
-    program->start_time = start_time;
-    program->end_time = 0;
+    program.pid = pid;
+    strncpy(program.program_name, program_name, 50);
+    program.start_time = start_time;
+    program.end_time = 0;
 
     programs[num_programs] = *program; // copy the contents of the newly allocated program to the array
     num_programs++;
 
     //free(program); // free the dynamically allocated memory
+}*/
+
+void add_program(pid_t pid, char *program_name, struct timespec start_time) {
+    if (num_programs >= 30) {
+        fprintf(stderr, "Maximum number of programs reached\n");
+        return;
+    }
+
+    programs[num_programs].pid = pid;
+    strncpy(programs[num_programs].program_name, program_name, 49); // Copy up to 49 characters to avoid buffer overflow
+    programs[num_programs].program_name[49] = '\0'; // Ensure the string is null-terminated
+    programs[num_programs].start_time = start_time;
+    programs[num_programs].end_time.tv_sec = 0;
+    programs[num_programs].end_time.tv_nsec = 0;
+
+    num_programs++;
 }
 
-void add_endtime_to_program(pid_t pid, time_t end_time) {
+void add_endtime_to_program(pid_t pid, struct timespec end_time) {
     if (num_programs >= 30) {
         fprintf(stderr, "Maximum number of programs reached\n");
         return;
@@ -51,9 +68,7 @@ void add_endtime_to_program(pid_t pid, time_t end_time) {
 
     for(int i=0; i<30; i++){
         if(programs[i].pid == pid){
-
             programs[i].end_time = end_time;
-
         }
     }
 }
@@ -69,7 +84,7 @@ void add_endtime_to_program(pid_t pid, time_t end_time) {
 }*/
 
 // function to remove a program from the array given its PID
-void remove_program(pid_t pid) {
+/*void remove_program(pid_t pid) {
     for (int i = 0; i < num_programs; i++) {
         if (programs[i].pid == pid) {
             // shift all programs after this one back by one position in the array
@@ -80,34 +95,31 @@ void remove_program(pid_t pid) {
             break;
         }
     }
-}
+}*/
 
-/*
-int number_of_programs_in_list(){//ver quantos programas estão na lista
+/*int number_of_programs_in_list(){//ver quantos programas estão na lista
 
     int n=0;
 
     for(int i =0; programs[i]!=NULL ; i++){
 
-       n++;
-   }
+        n++;
+    }
 
     return n;
 
 }*/
 
 int main(int argc, char** argv){
-    //int fd = open("myfifo", O_RDONLY);
     printf("Abri o fifo para leitura\n");
 
     int fifo = mkfifo("monitor_to_tracer", 0600);
-        if(fifo == -1){
-            perror("Erro na criação do FIFO.");
+    if(fifo == -1){
+        perror("Erro na criação do FIFO.");
         // exit(1);
     }
 
-    
-    //int flag=0;
+    // int flag=0;
     while(1){
         char* buffer = malloc(1000*sizeof(char));
 
@@ -120,76 +132,56 @@ int main(int argc, char** argv){
 
         if(strlen(buffer) == 0){
             continue;
-    }
-
-        printf("buffer :%s",buffer);
-        char * temp1 = strdup(buffer);
-
-       
-        //temp1 = strtok(temp1, "\0"); 
-        char * typeofservice = strtok(strdup(temp1), " ");
-
-        
-
-        
-        printf ( "typeofservice: %s!\n",typeofservice);
-
-        if(strcmp(typeofservice,"3")==0){
-
-            struct timeval current_time;
-            gettimeofday(&current_time, NULL);
-
-            Program statusMsg[30];
-            printf( " imprimir status \n");
-
-            printf("Program %s with PID %d started at %s", programs[0].program_name, programs[0].pid, ctime(&programs[0].start_time));
-
-            //print_programs();
-
-            for(int i=0; i<num_programs-1 ;i++){
-
-                printf("estou aqui!\n");
-                
-
-                long int elapsed_time = (current_time.tv_sec - programs[i].start_time) * 1000 + (current_time.tv_usec - programs[i].start_time) / 1000;//é preciso tv.sec no start_time?
-                //printf("Ended in %ld ms\n", argv[3],getpid(),elapsed_time);
-
-                printf("aquiii ! %ld\n",elapsed_time);
-
-                
-
-                if(programs[i].end_time == 0 ){
-
-                    int fd_wr_ServerToClient = open("monitor_to_tracer", O_WRONLY);
-                    if(fd_wr_ServerToClient<0) perror("fd2");
-
-                    char msg[100];
-                    sprintf(msg, "Program %d, Pid: %d, Em execução: %ld ms\n",programs[i].program_name, programs[i].pid, elapsed_time);
-
-                    //printf("%s\n", msg);
-                    //ctime(&programs[i].start_time)
-
-                    write(fd_wr_ServerToClient,msg,strlen(msg)+1);//enviar linha por linha para o cliente!
-
-                    close(fd_wr_ServerToClient);
-
-                }
-    
-
-            }
         }
 
-        else if(strcmp(typeofservice,"1")==0){
+        printf("buffer:%s\n",buffer);
+        char * temp1 = strdup(buffer);
+
+        //temp1 = strtok(temp1, "\0");
+        char * typeofservice = strtok(strdup(temp1), " ");
+
+        printf ( "typeofservice: %s!\n",typeofservice);
+        printf("Existem %d programas na lista!\n",num_programs);
+
+        if(strcmp(typeofservice,"3")==0){
+            printf("imprimir status\n");
+
+            for(int i=0; i<num_programs;i++){
+                if(programs[i].end_time.tv_sec == 0){
+                    struct timespec current_time;
+                    clock_gettime(CLOCK_REALTIME, &current_time);
+                    double elapsed_time = (current_time.tv_sec - programs[i].start_time.tv_sec) + (current_time.tv_nsec - programs[i].start_time.tv_nsec) / 1000000.0;
+                    printf("Program %s, Pid: %d, Em execução: %f ms\n",programs[i].program_name, programs[i].pid, elapsed_time);
+                } else {
+                    double elapsed_time = (programs[i].end_time.tv_sec - programs[i].start_time.tv_sec) + (programs[i].end_time.tv_nsec - programs[i].start_time.tv_nsec) / 1000000.0;
+                    printf("Program %s, Pid: %d, Terminado em: %f ms\n",programs[i].program_name, programs[i].pid, elapsed_time);
+                }
+            }
+
+            int fd_wr_ServerToClient = open("monitor_to_tracer", O_WRONLY);
+            if(fd_wr_ServerToClient<0) perror("fd2");
+
+
+            // int res;
+            // char* buffer = malloc(30*sizeof(char));
+            // while((res=read(programs,buffer,30))>0){
+            //     write(fd_wr_ServerToClient,buffer,30);
+            // }
+            write(fd_wr_ServerToClient,"done",strlen("done")+1);//enviar "done" para o cliente!
+
+            close(fd_wr_ServerToClient);
+
+        } else if(strcmp(typeofservice,"1")==0){
 
             char * argPidProgram = strtok(NULL, " ");
             char * argSecond = strtok(NULL, " ");//nome programa ou end_time
-            char * argThird = strtok(NULL, " ");
-        
-            //adicionar programa à lista apenas com tempo inicial (ainda em execução).
+            char *argThird = strtok(NULL, " ");
+            struct timespec start_time;
+            start_time.tv_sec = atoi(argThird); // Converte string para long int
+            start_time.tv_nsec = 0; // Define nanosegundos como zero
 
+        add_program(atoi(argPidProgram), argSecond, start_time); // Converte string para int
 
-
-            add_program(argPidProgram,argSecond,argThird);
             printf("Programa adicionado à lista | Pid: %s | Nome: %s | tInicial: %s\n",argPidProgram,argSecond,argThird);
 
             //print_programs();
@@ -201,41 +193,19 @@ int main(int argc, char** argv){
             char * argSecond = strtok(NULL, " ");//nome programa ou end_time
         //char * argThird = strtok(NULL, " ");
             
-            //acrescentar end time ao programa
-            add_endtime_to_program(argPidProgram,argSecond); //pid e end_time.
+            struct timespec end_time;
+            end_time.tv_sec = atoi(argSecond); // Converte string para long int
+            end_time.tv_nsec = 0; // Define nanosegundos como zero
+
+            add_endtime_to_program(atoi(argPidProgram), end_time); // Converte string para int
+
             printf("Programa com pid: %s Terminado!\n",argPidProgram);
         } 
-        
-       
+
+
     }
     return 0;
 
-    
+
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

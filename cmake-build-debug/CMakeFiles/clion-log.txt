@@ -1,0 +1,31 @@
+C:\Users\user\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\213.6777.58\bin\cmake\win\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=C:/Users/user/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/213.6777.58/bin/ninja/win/ninja.exe -G Ninja \\wsl$\Ubuntu\home\joaopsmendes\Universidade\2ano\SO\SO\TP-SO
+-- The C compiler identification is GNU 11.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - failed
+-- Check for working C compiler: C:/Users/user/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/213.6777.58/bin/mingw/bin/gcc.exe
+-- Check for working C compiler: C:/Users/user/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/213.6777.58/bin/mingw/bin/gcc.exe - broken
+CMake Error at C:/Users/user/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/213.6777.58/bin/cmake/win/share/cmake-3.21/Modules/CMakeTestCCompiler.cmake:69 (message):
+  The C compiler
+
+    "C:/Users/user/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/213.6777.58/bin/mingw/bin/gcc.exe"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: //wsl$/Ubuntu/home/joaopsmendes/Universidade/2ano/SO/SO/TP-SO/cmake-build-debug/CMakeFiles/CMakeTmp
+    
+    Run Build Command(s):C:/Users/user/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/213.6777.58/bin/ninja/win/ninja.exe cmTC_d12a8 && ninja: error: '//wsl$/Ubuntu/home/joaopsmendes/Universidade/2ano/SO/SO/TP-SO/cmake-build-debug/CMakeFiles/CMakeTmp/testCCompiler.c', needed by 'CMakeFiles/cmTC_d12a8.dir/testCCompiler.c.obj', missing and no known rule to make it
+    
+    
+
+  
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:2 (project)
+
+
+-- Configuring incomplete, errors occurred!
+See also "//wsl$/Ubuntu/home/joaopsmendes/Universidade/2ano/SO/SO/TP-SO/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "//wsl$/Ubuntu/home/joaopsmendes/Universidade/2ano/SO/SO/TP-SO/cmake-build-debug/CMakeFiles/CMakeError.log".
