@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <string.h>
-#define MAX_PROGRAMS 30
-
+#include "tracer.h"
 
 int main(int argc, char** argv){
 
@@ -36,6 +28,12 @@ int main(int argc, char** argv){
             }
         token[i]=NULL;
         }
+         // else if (strcmp(argv[2], "-p") == 0) {
+        //     //cat fich1 | grep "palavra" | wc -l
+        //     //SIZE == numero de commandos, no caso em cima seria 3
+        //     int p[SIZE-1][2];
+        //     //tem de ter no terminal as aspas entre os diferentes argumentos
+        //     //seguir o exercicio 6
 
         int res = fork();
 
@@ -90,16 +88,13 @@ int main(int argc, char** argv){
         //Program * buffer =malloc(30*sizeof(Program));
         int res;
 
-        char* buffer = malloc(30*sizeof(char));
+        char* buffer[50];
 
-        while((res=read(fd_rd_ServertoClient,buffer,30))>0){
+        while((res=read(fd_rd_ServertoClient,buffer,50))>0){
 
-            write(1,buffer,30);
+            write(1,buffer,50);
 
         }
-
-
-
         
         }
         return 0;
