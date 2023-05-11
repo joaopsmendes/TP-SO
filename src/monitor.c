@@ -115,49 +115,68 @@ int main(int argc, char** argv){
             continue;
         }
 
-        printf("buffer:%s\n",buffer);
+        //printf("buffer:%s\n",buffer);
         char * temp1 = strdup(buffer);
 
         //temp1 = strtok(temp1, "\0");
         char * typeofservice = strtok(strdup(temp1), " ");
 
-        printf ( "typeofservice: %s!\n",typeofservice);
-        printf("Existem %d programas na lista!\n",num_programs);
+        printf ( "Typeofservice: %s | ",typeofservice);
+        
 
         if(strcmp(typeofservice,"3")==0){
-            printf("imprimir status\n");
+            printf("A imprimir status ...\n");
+            printf("Existem %d programas na lista!\n",num_programs);
 
             int fd_wr_ServerToClient = open("monitor_to_tracer", O_WRONLY);
             if(fd_wr_ServerToClient<0) perror("fd2");
 
+            int flag_running_progs = 0;
+
             for(int i=0; i<num_programs;i++){
                 char msg[50];
                 if(programs[i].end_time.tv_sec == 0){
+
+                    flag_running_progs = 1;
+
                     struct timespec current_time;
                     clock_gettime(CLOCK_REALTIME, &current_time);
-                    double elapsed_time = (current_time.tv_sec - programs[i].start_time.tv_sec) + (current_time.tv_nsec - programs[i].start_time.tv_nsec) / 1000000000.0;
-                    printf("Program %s, Pid: %d, Em execução: %f ms\n",programs[i].program_name, programs[i].pid, elapsed_time);
-                    sprintf(msg, "Pid: %d Program: %s Em execução: %f\n",  programs[i].pid, programs[i].program_name, elapsed_time);   
+
+                    double elapsed_time_ms = (current_time.tv_sec - programs[i].start_time.tv_sec) * 1000.0 + (current_time.tv_nsec - programs[i].start_time.tv_nsec) / 1000000.0;
+
+                    //double elapsed_time = (current_time.tv_sec - programs[i].start_time.tv_sec) + (current_time.tv_nsec - programs[i].start_time.tv_nsec) / 1000000000.0;
+                    
+                    printf("Program %s, Pid: %d, Em execução: %f ms\n",programs[i].program_name, programs[i].pid, elapsed_time_ms);
+                    
+                    sprintf(msg,"%d %s %f ms\n",  programs[i].pid, programs[i].program_name, elapsed_time_ms);   
                 }else{
-                    double elapsed_time = (programs[i].end_time.tv_sec - programs[i].start_time.tv_sec) + (programs[i].end_time.tv_nsec - programs[i].start_time.tv_nsec) / 1000000000.0;
-                    printf("Program: %s, Pid: %d, Terminado em: %f ms\n",programs[i].program_name, programs[i].pid, elapsed_time);
-                    sprintf(msg, "Pid: %d  Program: %s Terminado em: %f\n",  programs[i].pid, programs[i].program_name, elapsed_time);
+                    
+                    //double elapsed_time = (current_time.tv_sec - programs[i].start_time.tv_sec) + (current_time.tv_nsec - programs[i].start_time.tv_nsec) / 1000000000.0;
+                    //double elapsed_time = (programs[i].end_time.tv_sec - programs[i].start_time.tv_sec) + (programs[i].end_time.tv_nsec - programs[i].start_time.tv_nsec) / 1000000000.0;
+                    printf("Program: %s com Pid: %d já foi Terminado!\n",programs[i].program_name, programs[i].pid);
+                    
                 }
 
-                ssize_t write_res = write(fd_wr_ServerToClient, msg, strlen(msg)+1);
+                int write_res = write(fd_wr_ServerToClient, msg, strlen(msg)+1);
+
                 if (write_res == -1) {
                     perror("write");
                     // Lide com o erro de escrita conforme necessário
                 }
-        }
+            }
 
+            char msgerror[50];
 
+            if(!flag_running_progs){
+                sprintf(msgerror, "Não existem programas a executar!\n");
+                int write_res = write(fd_wr_ServerToClient, msgerror, strlen(msgerror)+1);
 
-            // int res;
-            // char* buffer = malloc(30*sizeof(char));
-            // while((res=read(programs,buffer,30))>0){
-            //     write(fd_wr_ServerToClient,buffer,30);
-            // }
+                if (write_res == -1) {
+                    perror("write");
+                    // Lide com o erro de escrita conforme necessário
+                }
+
+            }
 
             close(fd_wr_ServerToClient);
 
@@ -189,7 +208,7 @@ int main(int argc, char** argv){
 
             add_endtime_to_program(atoi(argPidProgram), end_time); // Converte string para int
 
-            printf("Programa com pid: %s Terminado!\n",argPidProgram);
+            printf("Programa com pid: %s foi Terminado!\n",argPidProgram);
         } 
 
 

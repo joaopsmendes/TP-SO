@@ -7,8 +7,8 @@
 
 int main(int argc, char** argv){
 
-    struct timeval start_time;
-    gettimeofday(&start_time, NULL);
+    struct timespec start_time;
+    clock_gettime(CLOCK_REALTIME, &start_time);
 
 
     int fifo = mkfifo("tracer_to_monitor", 0600);
@@ -16,7 +16,7 @@ int main(int argc, char** argv){
             perror("Erro na criação do FIFO.");
         // exit(1);
         }
-    int fd = open("tracer_to_monitor", O_WRONLY,0600);
+        int fd = open("tracer_to_monitor", O_WRONLY,0600);
         printf("Abri o FIFO para escrita\n");
         int p[2];
         pipe(p);
@@ -31,7 +31,61 @@ int main(int argc, char** argv){
                 i++;
                 //printf("%s\n",&token[i]);
             }
-        token[i]=NULL;
+            token[i]=NULL;
+
+            int res = fork();
+
+            if(res==0){
+                //filho
+
+                execvp(argv[3],token);
+            
+                _exit(1);
+            }else{ 
+                struct timespec current_time;
+                clock_gettime(CLOCK_REALTIME, &current_time); // funcao time 
+
+                //enviar PID , nome do programa, timestamp
+
+                char msg[100];
+                //1 ->//print_programs();
+                sprintf(msg, "%d %d %s %ld",1, getpid(), argv[3], current_time.tv_sec);
+                
+                int status;
+                //char* tempo= malloc(20*sizeof(char));
+
+                printf("Running PID: %d\n", getpid());
+
+                write(fd,msg,100);
+
+                waitpid(res,&status,0);
+
+                struct timespec end_time;
+                clock_gettime(CLOCK_REALTIME, &end_time);;
+
+                //enviar msg do pid terminado e timesatamp final
+                sprintf(msg, "%d %d %ld",2, getpid(), current_time.tv_sec);
+
+                write(fd,msg,100);
+
+                double elapsed_time_ms = (end_time.tv_sec - current_time.tv_sec) * 1000.0 + (end_time.tv_nsec - current_time.tv_nsec) / 1000000.0;
+
+
+                //double elapsed_time = (end_time.tv_sec - current_time.tv_sec) + (end_time.tv_nsec - current_time.tv_nsec) / 1000000000.0;
+
+                //long int elapsed_time = (end_time.tv_sec - current_time.tv_sec) * 1000 + (end_time.tv_nsec - current_time.tv_nsec) / 1000;//tava start_time?
+                printf("Ended in %f ms\n",elapsed_time_ms);
+                
+            }
+
+
+
+        }else{
+
+            printf("Comando não reconhecido!\n");
+
+        
+
         }
          // else if (strcmp(argv[2], "-p") == 0) {
         //     //cat fich1 | grep "palavra" | wc -l
@@ -40,45 +94,7 @@ int main(int argc, char** argv){
         //     //tem de ter no terminal as aspas entre os diferentes argumentos
         //     //seguir o exercicio 6
 
-        int res = fork();
-
-        if(res==0){
-            //filho
-
-            execvp(argv[3],token);
         
-            _exit(1);
-        }else{ 
-            struct timeval current_time;
-            gettimeofday(&current_time, NULL); // funcao time 
-
-            //enviar PID , nome do programa, timestamp
-
-            char msg[100];
-            //1 ->//print_programs();
-            sprintf(msg, "%d %d %s %ld",1, getpid(), argv[3], current_time);
-            
-            int status;
-            //char* tempo= malloc(20*sizeof(char));
-
-            printf("Running PID: %d\n", getpid());
-
-            write(fd,msg,100);
-
-            waitpid(res,&status,0);
-
-            struct timeval end_time;
-            gettimeofday(&end_time, NULL);
-
-            //enviar msg do pid terminado e timesatamp final
-            sprintf(msg, "%d %d %ld",2, getpid(), current_time);
-
-            write(fd,msg,100);
-
-            long int elapsed_time = (end_time.tv_sec - current_time.tv_sec) * 1000 + (end_time.tv_usec - current_time.tv_usec) / 1000;//tava start_time?
-            printf("Ended in %ld ms\n",elapsed_time);
-            
-        }
 
     }else if (strcmp(argv[1], "status") == 0) {
 
@@ -87,23 +103,29 @@ int main(int argc, char** argv){
         printf("Status enviado ao servidor!\n");
         write(fd,statusMsg,20);
 
+        //char* buffer = malloc(128*sizeof(char));
+
         int fd_rd_ServertoClient = open("monitor_to_tracer",O_RDONLY,0600);
         if(fd_rd_ServertoClient <0) perror("fd1");
 
-        //Program * buffer =malloc(30*sizeof(Program));
-        int res;
+        char* buffer = (char*)malloc(50);
+        int bytesRead;
 
-        char* buffer[50];
+        while ((bytesRead = read(fd_rd_ServertoClient, buffer, 50)) > 0) {
+            int bytesWritten = write(1, buffer, strlen(buffer)+1);
 
-        while((res=read(fd_rd_ServertoClient,buffer,50))>0){
+            /*if(strlen(buffer) == 0){
+                continue;
+            }*/
 
-            write(1,buffer,50);
 
+            if (bytesWritten != bytesRead) {
+                break;
+            }
         }
-        
-        }
+
+        free(buffer);
+        close(fd_rd_ServertoClient);
+    }
         return 0;
 }
-    
-    
-
