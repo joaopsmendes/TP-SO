@@ -1,7 +1,6 @@
-#include "monitor.h"
-// para gaurdar a informacao
+#include "../include/monitor.h"
 
-int num_programs = 0;
+
 
 /*void add_program(pid_t pid, char *program_name, time_t start_time) {
     if (num_programs >= 30) {
@@ -101,13 +100,6 @@ int main(int argc, char** argv){
         // exit(1);
     }
 
-    int saida = open("saida.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    if(saida<0) perror("error on open saida\n");
-
-    int stdout = dup(1); // copiar 1 para stdout 
-
-    // dup2(saida, 1);
-
     // int flag=0;
     while(1){
         char* buffer = malloc(1000*sizeof(char));
@@ -135,10 +127,9 @@ int main(int argc, char** argv){
         if(strcmp(typeofservice,"3")==0){
             printf("imprimir status\n");
 
-        
             int fd_wr_ServerToClient = open("monitor_to_tracer", O_WRONLY);
             if(fd_wr_ServerToClient<0) perror("fd2");
-        
+
             for(int i=0; i<num_programs;i++){
                 char msg[50];
                 if(programs[i].end_time.tv_sec == 0){
@@ -162,14 +153,11 @@ int main(int argc, char** argv){
 
 
 
-            // ta a escrever para o ficheiro de saida.txt em vez do terminal 
             // int res;
             // char* buffer = malloc(30*sizeof(char));
-            // while((res=read(programs,&buffer,30))>0){
-            //     write(1,&buffer,50);
+            // while((res=read(programs,buffer,30))>0){
+            //     write(fd_wr_ServerToClient,buffer,30);
             // }
-            
-            // write(fd_wr_ServerToClient,"done",strlen("done")+1);//enviar "done" para o cliente!
 
             close(fd_wr_ServerToClient);
 
@@ -204,8 +192,8 @@ int main(int argc, char** argv){
             printf("Programa com pid: %s Terminado!\n",argPidProgram);
         } 
 
+
     }
-    // dup2(stdout, 1);
     return 0;
 
 

@@ -1,4 +1,9 @@
-#include "tracer.h"
+#include <sys/types.h>
+#include <unistd.h> /* chamadas ao sistema: defs e decls essenciais */
+#include <fcntl.h> /* O_RDONLY, O_WRONLY, O_CREAT, O_* */
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 int main(int argc, char** argv){
 
@@ -11,7 +16,7 @@ int main(int argc, char** argv){
             perror("Erro na criação do FIFO.");
         // exit(1);
         }
-        int fd = open("tracer_to_monitor", O_WRONLY,0600);
+    int fd = open("tracer_to_monitor", O_WRONLY,0600);
         printf("Abri o FIFO para escrita\n");
         int p[2];
         pipe(p);
