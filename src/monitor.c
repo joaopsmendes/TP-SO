@@ -100,6 +100,12 @@ int main(int argc, char** argv){
         // exit(1);
     }
 
+    //create a file with the name of the PID the program that was executed and that will saved/keeped in the folder PIDS-FOLDER
+    char pid_file_name[50];
+    // sprintf(pid_file_name, "PIDS-FOLDER/%d", getpid());
+
+
+
     // int flag=0;
     while(1){
         char* buffer = malloc(1000*sizeof(char));
@@ -148,7 +154,7 @@ int main(int argc, char** argv){
                     
                     printf("Program %s, Pid: %d, Em execução: %f ms\n",programs[i].program_name, programs[i].pid, elapsed_time_ms);
                     
-                    sprintf(msg,"%d %s %f ms\n",  programs[i].pid, programs[i].program_name, elapsed_time_ms);   
+                    sprintf(msg,"%d %s %.3f ms\n",  programs[i].pid, programs[i].program_name, elapsed_time_ms);   
                 }else{
                     
                     //double elapsed_time = (current_time.tv_sec - programs[i].start_time.tv_sec) + (current_time.tv_nsec - programs[i].start_time.tv_nsec) / 1000000000.0;
