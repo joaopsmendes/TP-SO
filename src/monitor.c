@@ -42,6 +42,15 @@ void add_program(pid_t pid, char *program_name, __time_t start_time_sec, __sysca
     num_programs++;
 }
 
+void add_program_v2(pid_t pid, char *program_name, __time_t start_time_sec, __syscall_slong_t start_time_nsec) {
+    if (num_programs >= 30) {
+        fprintf(stderr, "Maximum number of programs reached\n");
+        return;
+    }
+
+   
+}
+
 void add_endtime_to_program(pid_t pid, __time_t  end_time_sec, __syscall_slong_t end_time_nsec) {
     if (num_programs >= 30) {
         fprintf(stderr, "Maximum number of programs reached\n");
@@ -55,6 +64,43 @@ void add_endtime_to_program(pid_t pid, __time_t  end_time_sec, __syscall_slong_t
         }
     }
 }
+
+// function to print information about all programs
+/*void print_programs() {
+    for (int i = 0; i < number_of_programs_in_list(); i++) {
+        printf("Program %s with PID %d started at %s", programs[i].program_name, programs[i].pid, ctime(&programs[i].start_time));
+        if (programs[i].end_time != 0) {
+            printf("Program %s with PID %d ended at %s", programs[i].program_name, programs[i].pid, ctime(&programs[i].end_time));
+        }
+    }
+}*/
+
+// function to remove a program from the array given its PID
+/*void remove_program(pid_t pid) {
+    for (int i = 0; i < num_programs; i++) {
+        if (programs[i].pid == pid) {
+            // shift all programs after this one back by one position in the array
+            for (int j = i; j < num_programs - 1; j++) {
+                programs[j] = programs[j + 1];
+            }
+            num_programs--;
+            break;
+        }
+    }
+}*/
+
+/*int number_of_programs_in_list(){//ver quantos programas estão na lista
+
+    int n=0;
+
+    for(int i =0; programs[i]!=NULL ; i++){
+
+        n++;
+    }
+
+    return n;
+
+}*/
 
 int main(int argc, char** argv){
 
@@ -154,6 +200,23 @@ int main(int argc, char** argv){
 
             close(fd_wr_ServerToClient);
 
+        } else if(strcmp(typeofservice,"7")==0){
+            // execução encadeada de programas
+
+            char * argPidProgram = strtok(NULL, " ");
+            char * argSecond = strtok(NULL, " ");//nome programa ou end_time
+            char *argThird = strtok(NULL, " ");
+            char *argFourth = strtok(NULL, " ");
+            struct timespec start_time;
+            start_time.tv_sec = atoi(argFourth); // Converte string para long int
+            start_time.tv_nsec = 0; // Define nanosegundos como zero
+
+            add_program_v2(atoi(argPidProgram), argSecond, argThird, start_time); // Converte string para int
+
+            printf("Programa adicionado à lista | Pid: %s | Nome: %s | tInicial: %s\n",argPidProgram, argSecond, argThird, argFourth);
+
+            //print_programs();
+
         } else if(strcmp(typeofservice,"1")==0){
 
             char * argPidProgram = strtok(NULL, " ");
@@ -193,18 +256,26 @@ int main(int argc, char** argv){
 
                     //printf("elapsed time: %f \n", elapsed_time_ms);
 
-                    char filename[50];
+                    char filename[100];
                     sprintf(filename, "%s/%d.txt", path, programs[i].pid);//   /pids_folder/pid.txt
 
-                    int saida = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+                    int saida = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
                     if(saida<0) perror("error on open saida\n");
 
-                    char msg[20];
-                    sprintf(msg, "Elapsed time: %f ms\n", elapsed_time_ms);
+                    
+                    /*FILE* file = fopen(filename, "w");
+                    if (file == NULL) {
+                        printf("Error opening file %s\n", filename);
+                        return;
+                    }*/
 
+                    char msg[30];
+
+                    sprintf(msg, "Elapsed time: %f ms\n", elapsed_time_ms);
+                    
                     write(saida, msg, strlen(msg));
 
-                    close(filename);
+                    close(saida);
 
                     printf("File %s created successfully.\n", filename);
 
@@ -277,67 +348,6 @@ int main(int argc, char** argv){
                 }
 
             close(fd_wr_ServerToClient_status_time);
-
-        }else if(strcmp(typeofservice,"5")==0){//5 - status-command   typo 5, nome_prog, numero de pids, array pids
-
-
-            char * nomeProg = strtok(NULL, " ");
-            char * maxPids = strtok(NULL, " ");
-
-
-
-            int* pid_array = (int)malloc(atoi(maxPids) * sizeof(int));
-
-            int pid_array_size=0;
-
-            char * pid_token = strtok(NULL, " ");
-
-            while (pid_token != NULL && pid_array_size < maxPids) {
-                pid_array[pid_array_size++] = atoi(pid_token);
-                pid_token = strtok(NULL, " ");
-            }
-
-            int vezes_executado =0;
-
-
-            for(int i=0; i<num_programs;i++){
-
-                for (int j = 0; j < pid_array_size; j++) {
-
-                    //printf("PID %d: %d\n", i + 1, pid_array[i]);
-
-                    if((programs[i].pid == pid_array[j]) && (programs[i].program_name == nomeProg) ){
-
-
-                        vezes_executado ++;
-
-                        //printf("Program %s, Pid: %d, Em execução: %f ms, %f s\n",programs[i].program_name, programs[i].pid, elapsed_time_ms,elapsed_time_sec);
-
-                    }
-                }
-            }
-
-
-
-            printf("A imprimir status-command..\n");
-            //printf("Existem %d programas na lista!\n",num_programs);
-
-            int fd_wr_ServerToClient_status_command = open("monitor_to_tracer", O_WRONLY);
-            if(fd_wr_ServerToClient_status_command<0) perror("fd2");
-
-
-
-            char msg[50];
-            sprintf(msg, " %s Was execued %d times\n", vezes_executado);
-
-            int write_res = write(fd_wr_ServerToClient_status_command, msg, strlen(msg)+1);
-
-                if (write_res == -1) {
-                    perror("write");
-                    // Lide com o erro de escrita conforme necessário
-                }
-
-            close(fd_wr_ServerToClient_status_command);
         }
     }
     
