@@ -103,21 +103,11 @@ int main(int argc, char** argv){
 
                 double elapsed_time_ms = (end_time.tv_sec - current_time.tv_sec) * 1000.0 + (end_time.tv_nsec - current_time.tv_nsec) / 1000000.0;
 
-
-                //double elapsed_time = (end_time.tv_sec - current_time.tv_sec) + (end_time.tv_nsec - current_time.tv_nsec) / 1000000000.0;
-
-                //long int elapsed_time = (end_time.tv_sec - current_time.tv_sec) * 1000 + (end_time.tv_nsec - current_time.tv_nsec) / 1000;//tava start_time?
                 printf("Ended in %f ms\n",elapsed_time_ms);
                 
             }
 
         }else if (strcmp(argv[2], "-p") == 0) {
-                 //cat fich1 | grep "palavra" | wc -l
-                 // cat src/tracer.c | grep "status" | wc -l ===> resultado obtido 6
-                 //     //SIZE == numero de commandos, no caso em cima seria 3
-                 //     int p[SIZE-1][2];
-                 //     //tem de ter no terminal as aspas entre os diferentes argumentos !! TODO
-                 //     //seguir o exercicio 6
                 
             char **commands = malloc((argc - 3) * sizeof(char *));
             int i = 0;
@@ -158,12 +148,7 @@ int main(int argc, char** argv){
             if(res == 0){ 
                 //processo filho
 
-                // printf("argc = %d\n", argc); // = 4
-
-                // int number_of_numbers = argc - 1; //tirar os tres primeiros argumentos (./tracer execute -p)
-
                 int number_of_numbers = i;
-                // printf("number_of_numbers = %d\n", number_of_numbers);
 
                 int pipes[number_of_numbers-1][2];
 
@@ -228,20 +213,10 @@ int main(int argc, char** argv){
                 //enviar PID , nome do programa, timestamp
 
                 char msg[100];
-                //1 ->//print_programs();
-                // char *concatenatedString = malloc((argc + 1) * sizeof(char));
-                // concatenatedString[0] = '\0'; // Inicializa a string vazia             
-
-                // // Concatena os argumentos na string final
-                // for (i = 3; i < argc; i++) {
-                //     strcat(concatenatedString, argv[i]);
-                // }
-
-                printf("%s\n",commands[0]);
 
                 sprintf(msg, "%d %d %ld %ld %s",7, getpid(), current_time.tv_sec,current_time.tv_nsec, commands[0]);
 
-                printf(msg);
+                //printf(msg);
                 
                 int status;
                 //char* tempo= malloc(20*sizeof(char));
@@ -262,10 +237,6 @@ int main(int argc, char** argv){
 
                 double elapsed_time_ms = (end_time.tv_sec - current_time.tv_sec) * 1000.0 + (end_time.tv_nsec - current_time.tv_nsec) / 1000000.0;
 
-
-                //double elapsed_time = (end_time.tv_sec - current_time.tv_sec) + (end_time.tv_nsec - current_time.tv_nsec) / 1000000000.0;
-
-                //long int elapsed_time = (end_time.tv_sec - current_time.tv_sec) * 1000 + (end_time.tv_nsec - current_time.tv_nsec) / 1000;//tava start_time?
                 printf("Ended in %.3f ms\n",elapsed_time_ms);
 
              }
@@ -293,11 +264,6 @@ int main(int argc, char** argv){
 
         while ((bytesRead = read(fd_rd_ServertoClient, buffer, 50)) > 0) {
             int bytesWritten = write(1, buffer, strlen(buffer)+1);
-
-            /*if(strlen(buffer) == 0){
-                continue;
-            }*/
-
 
             if (bytesWritten != bytesRead) {
                 break;
@@ -343,6 +309,48 @@ int main(int argc, char** argv){
         free(buffer);
         close(fd_rd_ServertoClient_status_time);  
         
+    }else if (strcmp(argv[1], "status-command") == 0) {
+
+        if (argc < 3) {
+            printf("Syntax correta: %s status-command <program_name> <pid1> <pid2> ...\n", argv[0]);
+            return 1;
+        }
+
+        int pidString = (argc - 2) * 10;
+        char* pids_string = (char*)malloc(pidString * sizeof(char));
+        pids_string[0] = '\0';
+
+        int count=0;
+
+        //.tracer status-command 
+        for (int i = 3; i < argc; i++) {
+            sprintf(pids_string + strlen(pids_string), "%s ", argv[i]);
+            count++;
+        }
+
+        char statusMsg[100];
+        sprintf(statusMsg, "%d %s %d %s",5,argv[2],count, pids_string);//5 - status-command   typo 5, nome_prog, numero de pids, array pids
+
+        printf(statusMsg);
+
+        printf("Status-command enviado ao servidor!\n");
+        write(fd,statusMsg,100);
+
+        printf("aquii\n");
+
+
+
+        int fd_rd_ServertoClient_status_command = open("monitor_to_tracer",O_RDONLY,0600);
+        if(fd_rd_ServertoClient_status_command <0) perror("fd1");
+
+        char* buffer = (char*)malloc(50);
+        int bytesRead = read(fd_rd_ServertoClient_status_command, buffer, 50);
+
+        int bytesWritten = write(1, buffer, strlen(buffer)+1);
+
+        free(buffer);
+        close(fd_rd_ServertoClient_status_command);
+
     }
 
         
