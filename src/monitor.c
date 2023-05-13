@@ -42,15 +42,6 @@ void add_program(pid_t pid, char *program_name, __time_t start_time_sec, __sysca
     num_programs++;
 }
 
-void add_program_v2(pid_t pid, char *program_name, __time_t start_time_sec, __syscall_slong_t start_time_nsec) {
-    if (num_programs >= 30) {
-        fprintf(stderr, "Maximum number of programs reached\n");
-        return;
-    }
-
-   
-}
-
 void add_endtime_to_program(pid_t pid, __time_t  end_time_sec, __syscall_slong_t end_time_nsec) {
     if (num_programs >= 30) {
         fprintf(stderr, "Maximum number of programs reached\n");
@@ -204,16 +195,19 @@ int main(int argc, char** argv){
             // execução encadeada de programas
 
             char * argPidProgram = strtok(NULL, " ");
-            char * argSecond = strtok(NULL, " ");//nome programa ou end_time
-            char *argThird = strtok(NULL, " ");
-            char *argFourth = strtok(NULL, " ");
+            
+            char *argStartTimesec = strtok(NULL, " ");
+            char *argStartTimensec = strtok(NULL, " ");
+
+            char * argNome = strtok(NULL, "\0");//nome programa ou end_time
+
             struct timespec start_time;
-            start_time.tv_sec = atoi(argFourth); // Converte string para long int
-            start_time.tv_nsec = 0; // Define nanosegundos como zero
+            start_time.tv_sec = atoi(argStartTimesec); // Converte string para long int
+            start_time.tv_nsec = atoi(argStartTimensec); // Define nanosegundos como zero
 
-            add_program_v2(atoi(argPidProgram), argSecond, argThird, start_time); // Converte string para int
+            add_program(atoi(argPidProgram), argNome, start_time.tv_sec, start_time.tv_nsec); // Converte string para int
 
-            printf("Programa adicionado à lista | Pid: %s | Nome: %s | tInicial: %s\n",argPidProgram, argSecond, argThird, argFourth);
+            printf("Programa adicionado à lista | Pid: %s | Nome: %s | tInicial: %s\n",argPidProgram, argNome, argStartTimensec);
 
             //print_programs();
 
@@ -275,7 +269,7 @@ int main(int argc, char** argv){
                     
                     write(saida, msg, strlen(msg));
 
-                    close(saida);
+                    close(filename);
 
                     printf("File %s created successfully.\n", filename);
 

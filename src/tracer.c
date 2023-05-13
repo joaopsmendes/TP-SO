@@ -237,7 +237,11 @@ int main(int argc, char** argv){
                 //     strcat(concatenatedString, argv[i]);
                 // }
 
-                sprintf(msg, "%d %d %s %ld",7, getpid(), argv[3], current_time.tv_sec);
+                printf("%s\n",commands[0]);
+
+                sprintf(msg, "%d %d %ld %ld %s",7, getpid(), current_time.tv_sec,current_time.tv_nsec, commands[0]);
+
+                printf(msg);
                 
                 int status;
                 //char* tempo= malloc(20*sizeof(char));
@@ -252,7 +256,7 @@ int main(int argc, char** argv){
                 clock_gettime(CLOCK_REALTIME, &end_time);;
 
                 //enviar msg do pid terminado e timesatamp final
-                sprintf(msg, "%d %d %ld",2, getpid(), current_time.tv_sec);
+                sprintf(msg, "%d %d %ld %ld",2, getpid(), end_time.tv_sec, end_time.tv_nsec);
 
                 write(fd,msg,100);
 

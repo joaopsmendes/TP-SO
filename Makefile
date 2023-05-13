@@ -7,7 +7,7 @@ client: bin/tracer
 	@echo "Client compiled."
 
 folders:
-	@mkdir -p src obj bin include
+	@mkdir -p src obj bin include PIDS_folder
 
 bin/monitor: obj/monitor.o
 	gcc -g obj/monitor.o -o bin/monitor
