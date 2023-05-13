@@ -211,7 +211,7 @@ int main(int argc, char** argv){
 
                 }
             }
-        }else if(strcmp(typeofservice,"4")==0){//status-time sprintf(statusMsg, "%d %d %s",4,count, pids_string);
+        }else if(strcmp(typeofservice,"4")==0){//stats-time sprintf(statusMsg, "%d %d %s",4,count, pids_string);
 
 
             char * max_pids = strtok(NULL, " ");
@@ -254,22 +254,22 @@ int main(int argc, char** argv){
             printf("A imprimir status time..\n");
             //printf("Existem %d programas na lista!\n",num_programs);
 
-            int fd_wr_ServerToClient_status_time = open("monitor_to_tracer", O_WRONLY);
-            if(fd_wr_ServerToClient_status_time<0) perror("fd2");
+            int fd_wr_ServerToClient_stats_time = open("monitor_to_tracer", O_WRONLY);
+            if(fd_wr_ServerToClient_stats_time<0) perror("fd2");
 
 
 
             char msg[50];
             sprintf(msg, "Total execution time is: %f ms\n", max_time);
 
-            int write_res = write(fd_wr_ServerToClient_status_time, msg, strlen(msg)+1);
+            int write_res = write(fd_wr_ServerToClient_stats_time, msg, strlen(msg)+1);
 
                 if (write_res == -1) {
                     perror("write");
                     // Lide com o erro de escrita conforme necessário
                 }
 
-            close(fd_wr_ServerToClient_status_time);
+            close(fd_wr_ServerToClient_stats_time);
 
         }else if(strcmp(typeofservice,"5")==0){//5 - status-command   typo 5, nome_prog, numero de pids, array pids
 
@@ -307,22 +307,22 @@ int main(int argc, char** argv){
                 }
             }
 
-            printf("A imprimir status command..\n");
+            printf("A imprimir stats command..\n");
             
-            int fd_wr_ServerToClient_status_command = open("monitor_to_tracer", O_WRONLY);
-            if(fd_wr_ServerToClient_status_command<0) perror("fd2");
+            int fd_wr_ServerToClient_stats_command = open("monitor_to_tracer", O_WRONLY);
+            if(fd_wr_ServerToClient_stats_command<0) perror("fd2");
 
             char msg[50];
             sprintf(msg, "%s was executed %d times\n",nomeProg, vezes_executado);
 
-            int write_res = write(fd_wr_ServerToClient_status_command, msg, strlen(msg)+1);
+            int write_res = write(fd_wr_ServerToClient_stats_command, msg, strlen(msg)+1);
 
                 if (write_res == -1) {
                     perror("write");
                     // Lide com o erro de escrita conforme necessário
                 }
 
-            close(fd_wr_ServerToClient_status_command);
+            close(fd_wr_ServerToClient_stats_command);
         }
     }
     

@@ -273,7 +273,7 @@ int main(int argc, char** argv){
         free(buffer);
         close(fd_rd_ServertoClient);
 
-    }else if (strcmp(argv[1], "status-time") == 0) {
+    }else if (strcmp(argv[1], "stats-time") == 0) {
 
         if (argc < 3) {
             printf("Syntax correta: %s status-time <pid1> <pid2> ...\n", argv[0]);
@@ -309,7 +309,7 @@ int main(int argc, char** argv){
         free(buffer);
         close(fd_rd_ServertoClient_status_time);  
         
-    }else if (strcmp(argv[1], "status-command") == 0) {
+    }else if (strcmp(argv[1], "stats-command") == 0) {
 
         if (argc < 3) {
             printf("Syntax correta: %s status-command <program_name> <pid1> <pid2> ...\n", argv[0]);
@@ -335,8 +335,6 @@ int main(int argc, char** argv){
 
         printf("Status-command enviado ao servidor!\n");
         write(fd,statusMsg,100);
-
-        printf("aquii\n");
 
 
 
