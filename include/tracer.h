@@ -4,3 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+
+char* strtrim(char* str);
+int execute_commands(char* arg);

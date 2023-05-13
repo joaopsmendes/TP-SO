@@ -19,5 +19,5 @@ Program programs[MAX_PROGRAMS];
 
 int num_programs = 0;
 
-void add_program(pid_t pid, char *program_name, struct timespec start_time);
-void add_endtime_to_program(pid_t pid, struct timespec end_time);
+void add_program(pid_t pid, char *program_name, __time_t start_time_sec, __syscall_slong_t start_time_nsec);
+void add_endtime_to_program(pid_t pid, __time_t  end_time_sec, __syscall_slong_t end_time_nsec);
