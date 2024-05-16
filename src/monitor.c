@@ -25,7 +25,7 @@
     //free(program); // free the dynamically allocated memory
 }*/
 
-void add_program(pid_t pid, char *program_name, __time_t start_time_sec, __syscall_slong_t start_time_nsec) {
+void add_program(pid_t pid, char *program_name, time_t start_time_sec, __syscall_slong_t start_time_nsec) {
     if (num_programs >= 30) {
         fprintf(stderr, "Maximum number of programs reached\n");
         return;
@@ -42,7 +42,7 @@ void add_program(pid_t pid, char *program_name, __time_t start_time_sec, __sysca
     num_programs++;
 }
 
-void add_endtime_to_program(pid_t pid, __time_t  end_time_sec, __syscall_slong_t end_time_nsec) {
+void add_endtime_to_program(pid_t pid, time_t  end_time_sec, __syscall_slong_t end_time_nsec) {
     if (num_programs >= 30) {
         fprintf(stderr, "Maximum number of programs reached\n");
         return;
