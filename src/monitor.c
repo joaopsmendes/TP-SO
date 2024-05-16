@@ -1,31 +1,7 @@
 #include "../include/monitor.h"
 
 
-
-/*void add_program(pid_t pid, char *program_name, time_t start_time) {
-    if (num_programs >= 30) {
-        fprintf(stderr, "Maximum number of programs reached\n");
-        return;
-    }
-
-    Program *program = malloc(sizeof(Program)); // allocate memory for one Program structure
-    if (program == NULL) {
-        fprintf(stderr, "Failed to allocate memory\n");
-        return;
-    }
-
-    program.pid = pid;
-    strncpy(program.program_name, program_name, 50);
-    program.start_time = start_time;
-    program.end_time = 0;
-
-    programs[num_programs] = *program; // copy the contents of the newly allocated program to the array
-    num_programs++;
-
-    //free(program); // free the dynamically allocated memory
-}*/
-
-void add_program(pid_t pid, char *program_name, time_t start_time_sec, __syscall_slong_t start_time_nsec) {
+void add_program(pid_t pid, char *program_name, __time_t start_time_sec, __syscall_slong_t start_time_nsec) {
     if (num_programs >= 30) {
         fprintf(stderr, "Maximum number of programs reached\n");
         return;
@@ -154,6 +130,26 @@ int main(int argc, char** argv){
 
             close(fd_wr_ServerToClient);
 
+        } else if(strcmp(typeofservice,"7")==0){
+            // execução encadeada de programas
+
+            char * argPidProgram = strtok(NULL, " ");
+            
+            char *argStartTimesec = strtok(NULL, " ");
+            char *argStartTimensec = strtok(NULL, " ");
+
+            char * argNome = strtok(NULL, "\0");//nome programa ou end_time
+
+            struct timespec start_time;
+            start_time.tv_sec = atoi(argStartTimesec); // Converte string para long int
+            start_time.tv_nsec = atoi(argStartTimensec); // Define nanosegundos como zero
+
+            add_program(atoi(argPidProgram), argNome, start_time.tv_sec, start_time.tv_nsec); // Converte string para int
+
+            printf("Programa adicionado à lista | Pid: %s | Nome: %s | tInicial: %s\n",argPidProgram, argNome, argStartTimensec);
+
+            //print_programs();
+
         } else if(strcmp(typeofservice,"1")==0){
 
             char * argPidProgram = strtok(NULL, " ");
@@ -193,15 +189,16 @@ int main(int argc, char** argv){
 
                     //printf("elapsed time: %f \n", elapsed_time_ms);
 
-                    char filename[50];
+                    char filename[100];
                     sprintf(filename, "%s/%d.txt", path, programs[i].pid);//   /pids_folder/pid.txt
 
-                    int saida = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+                    int saida = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
                     if(saida<0) perror("error on open saida\n");
 
-                    char msg[20];
-                    sprintf(msg, "Elapsed time: %f ms\n", elapsed_time_ms);
+                    char msg[30];
 
+                    sprintf(msg, "Elapsed time: %f ms\n", elapsed_time_ms);
+                    
                     write(saida, msg, strlen(msg));
 
                     close(filename);
@@ -214,7 +211,7 @@ int main(int argc, char** argv){
 
                 }
             }
-        }else if(strcmp(typeofservice,"4")==0){//status-time sprintf(statusMsg, "%d %d %s",4,count, pids_string);
+        }else if(strcmp(typeofservice,"4")==0){//stats-time sprintf(statusMsg, "%d %d %s",4,count, pids_string);
 
 
             char * max_pids = strtok(NULL, " ");
@@ -237,20 +234,16 @@ int main(int argc, char** argv){
 
                 for (int j = 0; j < pid_array_size; j++) {
 
-                    //printf("PID %d: %d\n", i + 1, pid_array[i]);
 
                     if((programs[i].pid == pid_array[j]) && (programs[i].end_time.tv_sec != 0) ){
-
-                        //flag_running_progs = 1;
 
                         double elapsed_time_ms = (programs[i].end_time.tv_sec - programs[i].start_time.tv_sec) * 1000.0 +
                             (programs[i].end_time.tv_nsec - programs[i].start_time.tv_nsec) / 1e6;
 
-                        //printf("elapsed time | status-time = %f \n",elapsed_time_ms);
 
                         max_time += elapsed_time_ms;
 
-                        //printf("Program %s, Pid: %d, Em execução: %f ms, %f s\n",programs[i].program_name, programs[i].pid, elapsed_time_ms,elapsed_time_sec);
+                        
                           
                     }
                 }
@@ -261,30 +254,28 @@ int main(int argc, char** argv){
             printf("A imprimir status time..\n");
             //printf("Existem %d programas na lista!\n",num_programs);
 
-            int fd_wr_ServerToClient_status_time = open("monitor_to_tracer", O_WRONLY);
-            if(fd_wr_ServerToClient_status_time<0) perror("fd2");
+            int fd_wr_ServerToClient_stats_time = open("monitor_to_tracer", O_WRONLY);
+            if(fd_wr_ServerToClient_stats_time<0) perror("fd2");
 
 
 
             char msg[50];
             sprintf(msg, "Total execution time is: %f ms\n", max_time);
 
-            int write_res = write(fd_wr_ServerToClient_status_time, msg, strlen(msg)+1);
+            int write_res = write(fd_wr_ServerToClient_stats_time, msg, strlen(msg)+1);
 
                 if (write_res == -1) {
                     perror("write");
                     // Lide com o erro de escrita conforme necessário
                 }
 
-            close(fd_wr_ServerToClient_status_time);
+            close(fd_wr_ServerToClient_stats_time);
 
         }else if(strcmp(typeofservice,"5")==0){//5 - status-command   typo 5, nome_prog, numero de pids, array pids
 
 
             char * nomeProg = strtok(NULL, " ");
             char * maxPids = strtok(NULL, " ");
-
-
 
             int* pid_array = (int)malloc(atoi(maxPids) * sizeof(int));
 
@@ -298,7 +289,6 @@ int main(int argc, char** argv){
             }
 
             int vezes_executado =0;
-
 
             for(int i=0; i<num_programs;i++){
 
@@ -317,27 +307,22 @@ int main(int argc, char** argv){
                 }
             }
 
-
-
-            printf("A imprimir status-command..\n");
-            //printf("Existem %d programas na lista!\n",num_programs);
-
-            int fd_wr_ServerToClient_status_command = open("monitor_to_tracer", O_WRONLY);
-            if(fd_wr_ServerToClient_status_command<0) perror("fd2");
-
-
+            printf("A imprimir stats command..\n");
+            
+            int fd_wr_ServerToClient_stats_command = open("monitor_to_tracer", O_WRONLY);
+            if(fd_wr_ServerToClient_stats_command<0) perror("fd2");
 
             char msg[50];
-            sprintf(msg, " %s Was execued %d times\n", vezes_executado);
+            sprintf(msg, "%s was executed %d times\n",nomeProg, vezes_executado);
 
-            int write_res = write(fd_wr_ServerToClient_status_command, msg, strlen(msg)+1);
+            int write_res = write(fd_wr_ServerToClient_stats_command, msg, strlen(msg)+1);
 
                 if (write_res == -1) {
                     perror("write");
                     // Lide com o erro de escrita conforme necessário
                 }
 
-            close(fd_wr_ServerToClient_status_command);
+            close(fd_wr_ServerToClient_stats_command);
         }
     }
     
